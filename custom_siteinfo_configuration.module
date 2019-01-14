@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Contains custom_siteinfo_configuration.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_help().
+ */
+function custom_siteinfo_configuration_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.custom_siteinfo_configuration':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Custom module for system information form alter.') . '</p>';
+      $output .= '<p>' . t('This module alter the existing Drupal "Site Information" form. Specifics:') . '</p>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('A new form text field named "Site API Key" gets added to the "Site Information" form with the default value of “No API Key yet”.') . '</li>';
+      $output .= '<li>' . t('When this form is submitted, the value that the user entered for this field will be saved as the system variable named "siteapikey".') . '</li>';
+      $output .= '<li>' . t('A Drupal message will inform the user that the Site API Key has been saved with that value.') . '</li>';
+      $output .= '<li>' . t('When this form is visited after the "Site API Key" is saved, the field will be populated with the correct value.') . '</li>';
+      $output .= '<li>' . t('The text of the "Save configuration" button will get change to "Update Configuration".') . '</li>';
+      $output .= '<li>' . t('This module also provides a URL that responds with a JSON representation of a given node with the content type "page" only if the previously submitted API Key and a node id (nid) of an appropriate node are present, otherwise it will respond with "access denied".') . '</li>';
+      $output .= '</ul>';
+      $output .= '<ul><b>' .t('Example URL') .'</b>';
+      $output .= '<li>http://localhost/page_json/FOOBAR12345/17.</li>';
+      $output .= '</ul>';
+
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function custom_siteinfo_configuration_form_system_site_information_settings_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  // Get siteapikey from configurations
+  $siteapikey = \Drupal::config('custom.settings')->get('siteapikey');
+  $form['site_api_key_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('API Key'),
+  );
+  $form['site_api_key_fieldset']['site_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site API Key'),
+    '#description' => t('Please enter the site api key.'),
+    '#default_value' => empty($siteapikey) ? t('No API Key yet') : $siteapikey,
+  );
+  // Change value of submit button
+  $form['actions']['submit']['#value'] = t('Update Configuration');
+
+  // Custom submit handler
+  $form['#submit'][] = 'custom_siteinfo_configuration_submit_handler';
+}
+/**
+ * Implements custom submit handler.
+ *
+ * @param $form_state
+ * @param $form
+ */
+function custom_siteinfo_configuration_submit_handler(array &$form, FormStateInterface $form_state) {
+  \Drupal::configFactory()->getEditable('custom.settings')
+  ->set('siteapikey', $form_state->getValue('site_api_key'))
+  ->save();
+  // Set mesaage when user save form.
+  drupal_set_message('Site API Key updated with ' .  $form_state->getValue('site_api_key'));
+}

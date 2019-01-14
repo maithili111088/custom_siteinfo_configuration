@@ -1,0 +1,13 @@
+custom_siteinfo_configuration.pagejson:
+  path: /page_json/{apikey}/{page}
+  defaults:
+    _controller: '\Drupal\custom_siteinfo_configuration\Controller\PageJson::Build'
+    _title: 'Json Page'
+  methods: [GET]
+  requirements:
+    _permission: 'access content'
+    page: '[0-9]+'
+  options:
+    parameters:
+      page:
+        type: entity:node

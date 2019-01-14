@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function custom_siteinfo_configuration_uninstall() {
+  \Drupal::configFactory()->getEditable('custom.settings')->delete();
+}

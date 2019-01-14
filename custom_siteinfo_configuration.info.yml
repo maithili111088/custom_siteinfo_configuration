@@ -1,0 +1,5 @@
+name: 'Custom Site Info Configuration'
+type: module
+description: 'Custom module for system information form alter'
+core: 8.x
+package: 'Custom'
